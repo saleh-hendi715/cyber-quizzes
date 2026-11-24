@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>اختبار الدوال في C++ | Cyber-Saleh</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+    body {
+      margin: 0; padding: 16px;
+      background: #0f172a; color: #f1f5f9;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .card {
+      width: 100%; max-width: 620px;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 16px; padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    h1, h2 { margin-top: 0; color: #38bdf8; text-align: center; }
+    .subtitle { text-align: center; color: #94a3b8; margin-bottom: 24px; font-size: 0.95rem; }
+    .progress-bar {
+      width: 100%; height: 8px; background: #334155;
+      border-radius: 99px; overflow: hidden; margin-bottom: 16px;
+    }
+    .progress-fill {
+      height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s ease;
+    }
+    .meta {
+      display: flex; justify-content: space-between;
+      font-size: 0.9rem; color: #94a3b8; margin-bottom: 14px;
+    }
+    .question-text {
+      font-size: 1.15rem; font-weight: bold; line-height: 1.6; margin-bottom: 18px;
+    }
+    code {
+      background: #0f172a; color: #38bdf8; padding: 2px 6px;
+      border-radius: 6px; font-family: monospace; direction: ltr; display: inline-block;
+    }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+      width: 100%; text-align: right; padding: 14px 16px;
+      background: #0f172a; color: #f1f5f9;
+      border: 1px solid #334155; border-radius: 10px;
+      font-size: 1rem; cursor: pointer; transition: 0.2s;
+    }
+    .option-btn:hover:not(:disabled) { border-color: #38bdf8; background: #162238; }
+    .option-btn.correct { background: #064e3b; border-color: #10b981; color: #ecfdf5; }
+    .option-btn.wrong { background: #7f1d1d; border-color: #ef4444; color: #fef2f2; }
+    .explanation {
+      margin-top: 16px; padding: 14px; border-radius: 10px;
+      background: #0f172a; border-right: 4px solid #38bdf8;
+      display: none; line-height: 1.6; font-size: 0.95rem;
+    }
+    .btn {
+      width: 100%; margin-top: 18px; padding: 14px;
+      background: #0284c7; color: #fff; border: none;
+      border-radius: 10px; font-size: 1.05rem; font-weight: bold;
+      cursor: pointer; transition: 0.2s;
+    }
+    .btn:hover { background: #0369a1; }
+    .stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
+    }
+    .stat-box {
+      padding: 16px; border-radius: 12px; text-align: center; background: #0f172a;
+    }
+    .stat-box.ok { border: 1px solid #10b981; color: #34d399; }
+    .stat-box.bad { border: 1px solid #ef4444; color: #f87171; }
+    .stat-num { font-size: 1.8rem; font-weight: bold; }
+    .review-item {
+      background: #0f172a; border: 1px solid #334155;
+      border-radius: 10px; padding: 14px; margin-bottom: 12px; font-size: 0.92rem; line-height: 1.6;
+    }
+    .review-item.err { border-right: 4px solid #ef4444; }
+    .review-item.suc { border-right: 4px solid #10b981; }
+    .hidden { display: none; }
+    footer { margin-top: 20px; color: #64748b; font-size: 0.85rem; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <!-- شاشة البداية -->
+    <div id="start-screen">
+      <h1>اختبار الدوال في C++</h1>
+      <p class="subtitle">اختبر فهمك للدوال التي ينشئها المستخدم ودوال <code>void</code> مع تصحيح فوري وشرح لكل خطأ.</p>
+      <button class="btn" onclick="startQuiz()">ابدأ الاختبار الآن</button>
+    </div>
+
+    <!-- شاشة الأسئلة -->
+    <div id="quiz-screen" class="hidden">
+      <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+      <div class="meta">
+        <span id="q-counter"></span>
+        <span id="score-live">الصح: 0</span>
+      </div>
+      <div id="question-text" class="question-text"></div>
+      <div id="options-box" class="options"></div>
+      <div id="explanation-box" class="explanation"></div>
+      <button id="next-btn" class="btn hidden" onclick="nextQuestion()">السؤال التالي</button>
+    </div>
+
+    <!-- شاشة النتيجة -->
+    <div id="result-screen" class="hidden">
+      <h2>انتهى الاختبار!</h2>
+      <div class="stats">
+        <div class="stat-box ok">
+          <div>إجابات صحيحة</div>
+          <div id="final-correct" class="stat-num">0</div>
+        </div>
+        <div class="stat-box bad">
+          <div>إجابات خاطئة</div>
+          <div id="final-wrong" class="stat-num">0</div>
+        </div>
+      </div>
+      <div id="review-list"></div>
+      <button class="btn" onclick="location.reload()">إعادة الاختبار</button>
+    </div>
+  </div>
+
+  <footer>إعداد وتصميم: Cyber-Saleh</footer>
+
+  <script>
+    // ==========================================
+    // منطقة تعديل الأسئلة (تقدر تضيف أو تعدل هنا بسهولة)
+    // ==========================================
+    const questions = [
+      {
+        q: "ما هي الوظيفة الأساسية للكلمة المفتاحية <code>void</code> عند تعريف دالة في C++؟",
+        options: [
+          "تعني أن الدالة تُرجع رقماً صحيحاً دائماً",
+          "تعني أن الدالة لا تُرجع أي قيمة بعد انتهاء تنفيذها",
+          "تعني أن الدالة لا يمكن استدعاؤها داخل main",
+          "تعني أن الدالة خاصة بالعمليات الرياضية فقط"
+        ],
+        answer: 1,
+        explain: "النوع void يعني (فارغ)، ويُستخدم للدوال التي تنفذ مهمة معينة مثل الطباعة ولا تُرجع قيمة باستخدام return."
+      },
+      {
+        q: "إذا عرّفنا دالة بالشكل <code>void greet()</code>، فما هو نوعها بين الأنواع الأربعة للدوال؟",
+        options: [
+          "تُرجع قيمة وتستقبل معاملات",
+          "تُرجع قيمة ولا تستقبل معاملات",
+          "لا تُرجع قيمة وتستقبل معاملات",
+          "لا تُرجع قيمة ولا تستقبل معاملات"
+        ],
+        answer: 3,
+        explain: "لأن نوعها void فهي لا تُرجع قيمة، ولأن الأقواس () فارغة فهي لا تستقبل أي معاملات (Parameters)."
+      },
+      {
+        q: "ماذا يحدث إذا كتبت الدالة التي أنشأتها أسفل دالة <code>main()</code> دون كتابة Function Prototype في الأعلى؟",
+        options: [
+          "يعمل البرنامج بشكل طبيعي بدون مشاكل",
+          "يظهر خطأ برمجي لأن المترجم لم يتعرف على الدالة قبل استدعائها",
+          "تتحول الدالة تلقائياً إلى void",
+          "تتكرر الدالة إلى ما لا نهاية"
+        ],
+        answer: 1,
+        explain: "مترجم C++ يقرأ الكود من الأعلى للأسفل، لذا يجب إما كتابة الدالة فوق main أو كتابة رأسها (Prototype) فوق main."
+      },
+      {
+        q: "أي من السطور التالية يمثل استدعاءً صحيحاً لدالة معرّفة كالتالي: <code>void printSum(int a, int b)</code>؟",
+        options: [
+          "int x = printSum(5, 3);",
+          "cout << printSum(5, 3);",
+          "printSum(5, 3);",
+          "void printSum(5, 3);"
+        ],
+        answer: 2,
+        explain: "دالة void لا تُرجع قيمة، لذلك لا يمكن تخزينها في متغير ولا طباعتها داخل cout، بل تُستدعى باسمها وقيمها مباشرة."
+      }
+    ];
+
+    let current = 0, correctCount = 0, userAnswers = [];
+
+    function startQuiz() {
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const item = questions[current];
+      document.getElementById("q-counter").textContent = `السؤال ${current + 1} من ${questions.length}`;
+      document.getElementById("score-live").textContent = `الصح: ${correctCount}`;
+      document.getElementById("progress-fill").style.width = `${((current) / questions.length) * 100}%`;
+      document.getElementById("question-text").innerHTML = item.q;
+
+      const optionsBox = document.getElementById("options-box");
+      optionsBox.innerHTML = "";
+      document.getElementById("explanation-box").style.display = "none";
+      document.getElementById("next-btn").classList.add("hidden");
+
+      item.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerHTML = opt;
+        btn.onclick = () => selectAnswer(index, btn);
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(selectedIndex, clickedBtn) {
+      const item = questions[current];
+      const allBtns = document.querySelectorAll(".option-btn");
+      allBtns.forEach(b => b.disabled = true);
+
+      const isCorrect = selectedIndex === item.answer;
+      userAnswers.push({ q: item.q, chosen: item.options[selectedIndex], correct: item.options[item.answer], isCorrect, explain: item.explain });
+
+      if (isCorrect) {
+        correctCount++;
+        clickedBtn.classList.add("correct");
+      } else {
+        clickedBtn.classList.add("wrong");
+        allBtns[item.answer].classList.add("correct");
+      }
+
+      document.getElementById("score-live").textContent = `الصح: ${correctCount}`;
+      const expBox = document.getElementById("explanation-box");
+      expBox.innerHTML = `<strong>${isCorrect ? "✅ إجابة صحيحة!" : "❌ إجابة خاطئة:"}</strong><br>${item.explain}`;
+      expBox.style.display = "block";
+
+      const nextBtn = document.getElementById("next-btn");
+      nextBtn.textContent = (current === questions.length - 1) ? "عرض النتيجة النهائية" : "السؤال التالي";
+      nextBtn.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current < questions.length) {
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+
+      document.getElementById("final-correct").textContent = correctCount;
+      document.getElementById("final-wrong").textContent = questions.length - correctCount;
+
+      const reviewList = document.getElementById("review-list");
+      reviewList.innerHTML = "";
+      userAnswers.forEach((ans, i) => {
+        const div = document.createElement("div");
+        div.className = `review-item ${ans.isCorrect ? "suc" : "err"}`;
+        div.innerHTML = `
+          <div><strong>س${i + 1}:</strong> ${ans.q}</div>
+          <div>إجابتك: <strong>${ans.chosen}</strong> ${ans.isCorrect ? "✅" : "❌"}</div>
+          ${!ans.isCorrect ? `<div>الإجابة الصحيحة: <strong style="color:#34d399">${ans.correct}</strong></div>` : ""}
+          <div style="color:#94a3b8; margin-top:4px;"><strong>الشرح:</strong> ${ans.explain}</div>
+        `;
+        reviewList.appendChild(div);
+      });
+    }
+  </script>
+</body>
+  </html>
+  
